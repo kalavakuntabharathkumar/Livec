@@ -1,0 +1,3 @@
+package com.bharath.currency;
+import java.time.*;import java.util.concurrent.*;import org.springframework.stereotype.Service;import org.springframework.web.client.RestClient;
+@Service public class RateService{private final RestClient client=RestClient.create("https://api.frankfurter.app");private final ConcurrentHashMap<String,Entry> cache=new ConcurrentHashMap<>();public record Rates(String base,java.util.Map<String,Double> rates){}private record Entry(Rates value,Instant expires){}public Rates get(String base){Entry e=cache.get(base);if(e!=null&&e.expires().isAfter(Instant.now()))return e.value();Rates r=client.get().uri("/latest?from="+base).retrieve().body(Rates.class);cache.put(base,new Entry(r,Instant.now().plus(Duration.ofMinutes(10))));return r;}}
